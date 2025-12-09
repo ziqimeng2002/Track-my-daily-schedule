@@ -24,7 +24,7 @@
             <!-- GET Test Card -->
             <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
                 <h2 class="text-xl font-semibold text-indigo-700 mb-4">1. GET All Schedules</h2>
-                <p class="text-sm text-indigo-600 mb-4">Retrieves the current in-memory schedule array.</p>
+                <p class="text-sm text-indigo-600 mb-4">Retrieves the **persistent** schedule data from Firestore.</p>
                 <button onclick="getSchedules()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-150 shadow-md">
                     Execute GET /api/Schedule
                 </button>
@@ -33,7 +33,7 @@
             <!-- POST Test Card -->
             <div class="bg-green-50 p-6 rounded-lg border border-green-200">
                 <h2 class="text-xl font-semibold text-green-700 mb-4">2. POST New Schedule</h2>
-                <p class="text-sm text-green-600 mb-4">Adds a new high-priority test task.</p>
+                <p class="text-sm text-green-600 mb-4">Adds a new high-priority test task to Firestore.</p>
                 <button onclick="postSchedule()" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-150 shadow-md">
                     Execute POST /api/Schedule
                 </button>
@@ -77,15 +77,28 @@
                     options.body = JSON.stringify(body);
                 }
 
-                const response = await fetch('/api/Schedule', options); 
+                // Exponential backoff retry logic (for reliable API calls)
+                const MAX_RETRIES = 3;
+                let response = null;
+                let lastError = null;
+
+                for (let i = 0; i < MAX_RETRIES; i++) {
+                    try {
+                        response = await fetch('/api/Schedule', options); 
+                        if (response.ok) break; // Success
+                    } catch (error) {
+                        lastError = error;
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000)); // Exponential delay
+                    }
+                }
+
+                if (!response || !response.ok) {
+                    throw new Error(`Request failed after ${MAX_RETRIES} attempts. Status: ${response?.status || 'N/A'}. Last fetch error: ${lastError ? lastError.message : 'None'}`);
+                }
+                
                 const data = await response.json();
                 
                 responseElement.textContent = JSON.stringify(data, null, 2);
-                
-                // Add a visual confirmation/log for POST
-                if (method === 'POST') {
-                    console.log('POST Success:', data);
-                }
                 
             } catch (error) {
                 responseElement.textContent = `API Request Failed: ${error.message}`;
@@ -101,10 +114,10 @@
 
         function postSchedule() {
             const newSchedule = {
-                taskName: `AI-Generated Task ${Date.now() % 100}`,
-                dueDate: '2026-01-01',
-                estimatedTime: 45,
-                priority: 'High'
+                taskName: `Persistent Task ${Math.floor(Math.random() * 1000)}`,
+                dueDate: new Date().toISOString().split('T')[0], // Current date
+                estimatedTime: Math.floor(Math.random() * 120) + 30, // 30 to 150 minutes
+                priority: ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)]
             };
             apiCall('POST', newSchedule);
         }
