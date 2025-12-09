@@ -1,0 +1,19 @@
+{
+  "name": "vercel-schedule-tracker-api",
+  "version": "1.0.0",
+  "description": "Serverless API for the Schedule Tracker app deployed on Vercel.",
+  "main": "api/Schedule.js",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "keywords": [
+    "vercel",
+    "serverless",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/node": "^3.0.7"
+  }
+}
