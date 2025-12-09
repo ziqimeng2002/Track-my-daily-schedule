@@ -1,34 +1,34 @@
 // api/Schedule.js
 
-// 🚨 注意：在实际生产环境中，您应该使用数据库（如 MongoDB, PostgreSQL, FaunaDB）
-// 来持久化数据。此处的内存数组仅用于演示 Serverless API 的基本功能。
+// In a production application, data should be persisted in a database (e.g., Firestore, MongoDB, PostgreSQL).
+// This in-memory array is for demonstration and basic testing purposes only.
 const scheduleData = [
   {
     id: 's1',
-    taskName: '完成 Vercel 部署文档',
+    taskName: 'Review Vercel Deployment Guides',
     dueDate: '2025-12-15',
-    estimatedTime: 120, // 分钟
+    estimatedTime: 120, // minutes
     priority: 'High'
   },
 ];
 
 /**
- * Serverless Function 入口
+ * Vercel Serverless Function entry point.
  * @param {import('@vercel/node').VercelRequest} req 
  * @param {import('@vercel/node').VercelResponse} res
  */
 module.exports = (req, res) => {
-  // 设置 CORS 头部，允许所有来源访问 (可选，但推荐用于前端调试)
+  // Set CORS headers for safe cross-origin requests (essential for frontend testing)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // 处理 OPTIONS 请求 (用于预检请求，确保跨域请求顺利)
+  // Handle OPTIONS method (pre-flight request)
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // --- GET 请求: 获取所有日程 ---
+  // --- GET Request: Retrieve all schedules ---
   if (req.method === 'GET') {
     return res.status(200).json({
       success: true,
@@ -37,23 +37,32 @@ module.exports = (req, res) => {
     });
   }
 
-  // --- POST 请求: 添加新日程 ---
+  // --- POST Request: Add a new schedule item ---
   if (req.method === 'POST') {
     const { taskName, dueDate, estimatedTime, priority } = req.body;
 
-    // 🎯 错误处理: 检查必填字段
+    // Error Handling: Check for missing required fields
     if (!taskName || !dueDate || !estimatedTime || !priority) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: taskName, dueDate, estimatedTime, and priority are required.',
+        message: 'Missing required fields. taskName, dueDate, estimatedTime, and priority are mandatory.',
       });
     }
 
+    // Input validation (basic type checking)
+    const timeInMinutes = parseInt(estimatedTime, 10);
+    if (isNaN(timeInMinutes) || timeInMinutes <= 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid estimatedTime. Must be a positive number.'
+        });
+    }
+
     const newSchedule = {
-      id: `s${scheduleData.length + 1}`, // 简单生成 ID
+      id: `s${Date.now()}`, // Use timestamp for a unique ID
       taskName,
       dueDate,
-      estimatedTime: parseInt(estimatedTime, 10),
+      estimatedTime: timeInMinutes,
       priority,
     };
 
@@ -61,14 +70,14 @@ module.exports = (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Schedule added successfully.',
+      message: 'Schedule item added successfully.',
       schedule: newSchedule,
     });
   }
 
-  // --- 其他方法 (例如 PUT, DELETE) ---
+  // --- Fallback for unsupported methods ---
   return res.status(405).json({
     success: false,
-    message: `Method ${req.method} Not Allowed`,
+    message: `Method ${req.method} Not Allowed. Only GET and POST are supported.`,
   });
 };
