@@ -1,7 +1,7 @@
 {
   "name": "vercel-schedule-tracker-api",
   "version": "1.0.0",
-  "description": "Serverless API for the Schedule Tracker app deployed on Vercel.",
+  "description": "Serverless API for a Schedule Tracker app using Firestore for persistence, deployed on Vercel.",
   "main": "api/Schedule.js",
   "scripts": {
     "start": "vercel dev"
@@ -9,11 +9,14 @@
   "keywords": [
     "vercel",
     "serverless",
-    "api"
+    "api",
+    "firebase",
+    "firestore"
   ],
-  "author": "",
+  "author": "AI Code Generator",
   "license": "ISC",
   "dependencies": {
-    "@vercel/node": "^3.0.7"
+    "@vercel/node": "^3.0.7",
+    "firebase": "^10.12.3"
   }
 }
