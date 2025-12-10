@@ -1,11 +1,9 @@
 {
 "name": "schedule-tracker-api",
-"version": "1.0.0",
-"main": "index.js",
-"license": "MIT",
+"version": "1.0.1",
 "type": "module",
 "scripts": {
-"start": "vercel dev"
+"dev": "vercel dev"
 },
 "dependencies": {}
 }
