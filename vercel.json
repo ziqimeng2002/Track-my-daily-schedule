@@ -1,37 +1,7 @@
 {
 "version": 2,
-"builds": [
-{
-"src": "api/schedule.js",
-"use": "@vercel/node"
-},
-{
-"src": "index.html",
-"use": "@vercel/static"
-}
-],
 "routes": [
-{
-"src": "/api/schedule",
-"dest": "/api/schedule.js"
-},
-{
-"src": "/(.*)",
-"dest": "/index.html"
-}
-]
-}
-```json
-{
-"version": 2,
-"functions": {
-"api/schedule.js": {
-"runtime": "nodejs18.x",
-"memory": 128,
-"maxDuration": 10
-}
-},
-"routes": [
-{ "src": "/api/schedule", "dest": "/api/schedule.js" }
+{ "src": "/api/schedule", "dest": "/api/schedule.js" },
+{ "src": "/(.*)", "dest": "/index.html" }
 ]
 }
