@@ -1,38 +1,50 @@
+export const config = {
+runtime: 'edge' // super simple & always works
+};
+
+
 let schedules = [];
 
 
-export default async function handler(req, res) {
-if (req.method === 'GET') {
-return res.status(200).json({ success: true, data: schedules });
-}
+export default async function handler(req) {
+const { method } = req;
 
 
-if (req.method === 'POST') {
-let body = req.body;
-
-
-// Handle raw string body (Vercel sometimes sends as string)
-if (typeof body === 'string') {
-try {
-body = JSON.parse(body);
-} catch (e) {
-return res.status(400).json({ success: false, error: 'Invalid JSON format' });
-}
-}
-
-
-const { taskName, dueDate, estimatedTime, priority } = body || {};
-
-
-if (!taskName || !dueDate || !estimatedTime || !priority) {
-return res.status(400).json({
-success: false,
-error: 'Missing required fields: taskName, dueDate, estimatedTime, priority'
+if (method === 'GET') {
+return new Response(JSON.stringify({ success: true, data: schedules }), {
+status: 200,
+headers: { 'Content-Type': 'application/json' }
 });
 }
 
 
-const newSchedule = {
+if (method === 'POST') {
+const body = await req.json().catch(() => null);
+
+
+if (!body) {
+return new Response(JSON.stringify({ success: false, error: 'Invalid JSON' }), {
+status: 400,
+headers: { 'Content-Type': 'application/json' }
+});
+}
+
+
+const { taskName, dueDate, estimatedTime, priority } = body;
+
+
+if (!taskName || !dueDate || !estimatedTime || !priority) {
+return new Response(JSON.stringify({
+success: false,
+error: 'Missing required fields: taskName, dueDate, estimatedTime, priority'
+}), {
+status: 400,
+headers: { 'Content-Type': 'application/json' }
+});
+}
+
+
+const newItem = {
 id: schedules.length + 1,
 taskName,
 dueDate,
@@ -41,12 +53,18 @@ priority
 };
 
 
-schedules.push(newSchedule);
+schedules.push(newItem);
 
 
-return res.status(201).json({ success: true, data: newSchedule });
+return new Response(JSON.stringify({ success: true, data: newItem }), {
+status: 201,
+headers: { 'Content-Type': 'application/json' }
+});
 }
 
 
-return res.status(405).json({ success: false, error: 'Method not allowed' });
+return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
+status: 405,
+headers: { 'Content-Type': 'application/json' }
+});
 }
